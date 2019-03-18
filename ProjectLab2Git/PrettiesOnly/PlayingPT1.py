@@ -1,6 +1,7 @@
 #Author: Isaac Morales
-# THis is a prettier version of my original code for playing the guitar using
-#the rapberry pi. Uncomment the GPIO stuff to play :)
+# This is a prettier version of my original code for playing the guitar using
+#the raspberry pi. Uncomment the GPIO stuff to play :)
+
 import array as ar
 import time
 import mido
@@ -69,8 +70,8 @@ def ReadIt(fname):
         # combine both arrays for the Midi values when on
         MidiNotes = []
         count = 0
-        print(len(timeDelay))
-        print(len(note))
+        # print(len(timeDelay)) #number of time delays
+        # print(len(note))  #number of notes
         for i in range(len(timeDelay)):
             if term0 in noteStatus[i]:
                 temp = note[i].split(term2,2)[1]
@@ -80,7 +81,7 @@ def ReadIt(fname):
             else:
                 continue
         # print(count)
-        print(MidiNotes)
+        print('Midi notes and their time delays no modifications:\n',MidiNotes)
     return MidiNotes
 
 def Open(MidiNotes,notePos,strings):
@@ -115,14 +116,14 @@ def Open(MidiNotes,notePos,strings):
             continue
         # print(MidiNotes)
 
-    strings.append(StringE4)
-    strings.append(StringB3)
-    strings.append(StringG3)
-    strings.append(StringD2)
-    strings.append(StringA2)
-    strings.append(StringE2)
-    print(strings)
-    print(strings[0][0][0]) #[open string][index of info in list][member of 2D info] //0 = index , 1 =  Note
+    strings.append(StringE4)    #string 0
+    strings.append(StringB3)    #string 1
+    strings.append(StringG3)    #string 2
+    strings.append(StringD2)    #string 3
+    strings.append(StringA2)    #string 4
+    strings.append(StringE2)    #string 5
+    print('all 6 strings and the list of notes on each one ft. their index: \n',strings)
+    # print(strings[0][0][0]) #[open string][index of info in list][member of 2D info] //0 = index , 1 =  Note
     # print(len(strings[1]))
 
     return (MidiNotes,strings)
@@ -147,39 +148,58 @@ def Dictionary(notePos):
 
 
 def LetsPlay(MidiNotes,strings,notePos):
-    OpenStrings =[[40,'E2',29],[45,'A2',31],[50,'D2',33],[55,'G3',35],[59,'B3',37],[64,'E4',40]]
+    # OpenStrings =[]
+    OpenStrings = [[64,'E4',40],[59,'B3',37],[55,'G3',35],[50,'D2',33],[45,'A2',31],[40,'E2',29]]
     pluck = ar.array('B',(False for v in range(0,len(OpenStrings))))
     for i in range(len(MidiNotes)):
         for string in range(len(strings)):
-            for n in range(len(strings[string])-1):
+            for n in range(len(strings[string])):
                 if int(strings[string][n][0]) == i:
-                    if i>1:
-                        print('----------------------------------------------')
+                    # print(strings[string][n][0])
+                    if n>0:
+                        print('--------------------------------------------------------------------------')
                         print(i,' note: ',strings[string][n][1] )
-                        print(notePos[str(strings[string][n+1][1])])
-                        print(notePos[str(strings[string][n][1])])
+                        print('index of previous note on this string: ',strings[string][n-1][0])
+                        print('steps from the end: ',notePos[str(strings[string][n-1][1])])
+                        print('index of current note on this string: ',strings[string][n][0])
+                        print('steps from the end: ',notePos[str(strings[string][n][1])])
                         #difference between notes on the same string
-                        difference = int(notePos[str(strings[string][n][1])]) - int(notePos[str(strings[string][n+1][1])])
-                        print('move String: ',string,'\t',difference,' steps')
+                        difference = int(notePos[str(strings[string][n][1])]) - int(notePos[str(strings[string][n-1][1])])
+                        print('move Stepper on string ',string,' aka ',OpenStrings[string][1],difference,' steps')
+                        for x in range(len(OpenStrings)):
+                            if MidiNotes[i][0] is OpenStrings[x][0]:
+                                if pluck[x] == False:
+                                    pluck[x] = True
+                                elif pluck[x] == True:
+                                    pluck[x] = False
+                                else:
+                                    continue
+                                print('play ' + OpenStrings[x][1], pluck[x])
+
+                                # GPIO.output(OpenStrings[n][2],pluck[n])
+                                print('time delay: ',MidiNotes[i][1])
+                                time.sleep(MidiNotes[i][1])
 
                     else:
-                        print('----------------------------------------------')
-                        print('note: ',strings[string][n][1] )
-                        difference = 0
-                        print('move String: ',string,'\t',difference,' steps')
-        for n in range(len(OpenStrings)):
-            if MidiNotes[i][0] is OpenStrings[n][0]:
-                if pluck[n] == False:
-                    pluck[n] = True
-                elif pluck[n] == True:
-                    pluck[n] = False
-                else:
-                    continue
-                print('play ' + OpenStrings[n][1], pluck[n])
+                        print('--------------------------------------------------------------------------')
+                        print('since this is the first note played on this string, move to its distance') #will def be changing considering we might start with open notes
+                        print(i,' note: ',strings[string][n][1] )
+                        difference = int(notePos[str(strings[string][n][1])])   #move to note we need
+                        print('move Stepper on string ',string,' aka ',OpenStrings[string][1],'\t',difference,' steps')
+                        for x in range(len(OpenStrings)):
+                            if MidiNotes[i][0] is OpenStrings[x][0]:
+                                if pluck[x] == False:
+                                    pluck[x] = True
+                                elif pluck[x] == True:
+                                    pluck[x] = False
+                                else:
+                                    continue
+                                print('play ' + OpenStrings[x][1], pluck[x])
 
-                # GPIO.output(OpenStrings[n][2],pluck[n])
-                print(MidiNotes[i][1])
-                time.sleep(MidiNotes[i][1])
+                                # GPIO.output(OpenStrings[n][2],pluck[n])
+                                print('time delay: ',MidiNotes[i][1])
+                                time.sleep(MidiNotes[i][1])
+
 
 def main():
     #Start here
@@ -205,7 +225,7 @@ def main():
 
     (MidiNotes,strings) = Open(MidiNotes, notePos ,strings) #For Strumming, convert to open notes and
 
-    print('Midi Notes \n', MidiNotes)
+    print('Open string Midi Notes \n', MidiNotes)
     print('strings\n ', strings)
 
 
