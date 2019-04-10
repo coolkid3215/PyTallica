@@ -164,7 +164,7 @@ def LetsPlay(MidiNotes,strings,notePos):
                         print('index of current note on this string: ',strings[string][n][0])
                         print('steps from the end: ',notePos[str(strings[string][n][1])])
                         #difference between notes on the same string
-                        difference = int(notePos[str(strings[string][n][1])]) - int(notePos[str(strings[string][n-1][1])])
+                        difference = int(notePos[str(strings[string][n-1][1])]) - int(notePos[str(strings[string][n][1])])
                         print('move Stepper on string ',string,' aka ',OpenStrings[string][1],difference,' steps')
                         for x in range(len(OpenStrings)):
                             if MidiNotes[i][0] is OpenStrings[x][0]:
