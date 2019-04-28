@@ -171,7 +171,7 @@ def Dictionary(notePos):
     return notePos
 
 def Preview(MidiNotes,strings,notePos,pls):
-    OpenStrings = [[0,'E4',10],[1,'B3',11],[2,'G3',12],[3,'D2',13],[4,'A2',14],[5,'E2',15]]
+    OpenStrings = [[0,'E4',1,64],[1,'B3',2,59],[2,'G3',3,55],[3,'D2',4,50],[4,'A2',5,45],[5,'E2',6,40]]
     pluck = ar.array('B',(False for v in range(0,len(OpenStrings))))     #since the picks are backwards now this may flop but idk
     if pls < len(MidiNotes):
         i = pls
@@ -184,9 +184,9 @@ def Preview(MidiNotes,strings,notePos,pls):
                             print('--------------------------------------------------------------------------')
                             print(i,' note: ',strings[string][n][1] )
                             print('index of previous note on this string: ',strings[string][n-1][0])
-                            print('steps from the end: ',notePos[str(strings[string][n-1][1])])
+                            # print('steps from the end: ',notePos[str(strings[string][n-1][1])])
                             print('index of current note on this string: ',strings[string][n][0])
-                            print('steps from the end: ',notePos[str(strings[string][n][1])])
+                            # print('steps from the end: ',notePos[str(strings[string][n][1])])
                             difference = int(strings[string][n-1][1])- int(strings[string][n][1])   #distance b/w curent note on string and prev note on string
                             direction = 2 if difference > 0 else 1  #if pos: move fwd, neg: back
                             difference = abs(difference)
@@ -271,7 +271,8 @@ def Preview(MidiNotes,strings,notePos,pls):
                             print('--------------------------------------------------------------------------')
                             print('since this is the first note played on this string, move to its distance') #will def be changing considering we might start with open notes
                             print(i,' note: ',strings[string][n][1] )
-                            difference = int(notePos[str(strings[string][n][1])])   #move to note we need
+                            usable = int(strings[string][n][1])-int(OpenStrings[string][3])
+                            difference = int(notePos[str(usable)])   #move to note we need
                             print('move Stepper on string ',string,' aka ',OpenStrings[string][1],'\t',difference,' steps')
                             for x in range(len(OpenStrings)):
                                 if len(strings[x])> 0:
@@ -311,31 +312,36 @@ def LetsPlay(MidiNotes,strings,notePos):
             for n in range(len(strings[string])):
                 if int(strings[string][n][0]) == i:
                     if n>0:
+                        prevPos = int(strings[string][n-1][1])-int(OpenStrings[string][3])
+                        currPos = int(strings[string][n][1])-int(OpenStrings[string][3])
 
-                        difference = int(notePos[str(strings[string][n-1][1])])- int(notePos[str(strings[string][n][1])])
+                        difference = int(notePos[str(prevPos)])- int(notePos[str(currPos)])
+
                         direction = 2 if difference > 0 else 1
                         difference = abs(difference)
                         print('--------------------------------------------------------------------------')
                         print(i,' note: ',strings[string][n][1] )
                         print('index of previous note on this string: ',strings[string][n-1][0])
-                        print('steps from the end: ',notePos[str(strings[string][n-1][1])])
+                        print('steps from the end: ',notePos[str(prevPos)])
                         print('index of current note on this string: ',strings[string][n][0])
-                        print('steps from the end: ',notePos[str(strings[string][n][1])])
+                        print('steps from the end: ',notePos[str(currPos)])
+                        print(prevPos, '-', currPos)
+                        print(direction)
                         strings[string][n][3]=1
 
-                        subThis = 0
+                        # subThis = 0
                         if strings[string][n][4] == 0:  #E4
-                            (done , subThis) = S0.step(difference,direction)
+                            done = S0.step(difference,direction)
                         elif strings[string][n][4] == 1:   #B3
-                            (done , subThis) = S1.step(difference,direction)
+                            done = S1.step(difference,direction)
                         elif strings[string][n][4] == 2:   #G3
-                            (done , subThis) = S2.step(difference,direction)
+                            done = S2.step(difference,direction)
                         elif strings[string][n][4] == 3:   #D2
-                            (done , subThis) = S3.step(difference,direction)
+                            done = S3.step(difference,direction)
                         elif strings[string][n][4] == 4:   #A2
-                            (done , subThis) = S4.step(difference,direction)
+                            done = S4.step(difference,direction)
                         elif strings[string][n][4] == 5:   #E2
-                            (done , subThis) = S5.step(difference,direction)
+                            done = S5.step(difference,direction)
                         else:
                             continue
 
@@ -356,13 +362,13 @@ def LetsPlay(MidiNotes,strings,notePos):
                                         wait = picks.Plucking(OpenStrings[x][2],pluck[x])
 
                                         if wait:
-                                            totalDelay = float(strings[x][n][5]) - subThis
-
-                                            print(strings[x][n][5],'-',subThis)
-                                            print('before:', totalDelay)
-                                            totalDelay = 0 if totalDelay <= 0.0 else totalDelay
-                                            print('time delay: ', totalDelay)
-                                            time.sleep(totalDelay)
+                                            # totalDelay = float(strings[x][n][5]) - subThis
+                                            #
+                                            # print(strings[x][n][5],'-',subThis)
+                                            # print('before:', totalDelay)
+                                            # totalDelay = 0 if totalDelay <= 0.0 else totalDelay
+                                            # print('time delay: ', totalDelay)
+                                            time.sleep(float(strings[x][n][5]))
                                 else:
                                     continue
                         else:
@@ -380,17 +386,17 @@ def LetsPlay(MidiNotes,strings,notePos):
 
                         subThis = 0
                         if strings[string][n][4] == 0:  #E4
-                            (done , subThis) = S0.step(difference,direction)
+                            done = S0.step(difference,direction)
                         elif strings[string][n][4] == 1:   #B3
-                            (done , subThis) = S1.step(difference,direction)
+                            done = S1.step(difference,direction)
                         elif strings[string][n][4] == 2:   #G3
-                            (done , subThis) = S2.step(difference,direction)
+                            done = S2.step(difference,direction)
                         elif strings[string][n][4] == 3:   #D2
-                            (done , subThis) = S3.step(difference,direction)
+                            done = S3.step(difference,direction)
                         elif strings[string][n][4] == 4:   #A2
-                            (done , subThis) = S4.step(difference,direction)
+                            done = S4.step(difference,direction)
                         elif strings[string][n][4] == 5:   #E2
-                            (done , subThis) = S5.step(difference,direction)
+                            done = S5.step(difference,direction)
                         else:
                             continue
                         if done:
@@ -410,10 +416,10 @@ def LetsPlay(MidiNotes,strings,notePos):
                                         wait = picks.Plucking(OpenStrings[x][2],pluck[x])
 
                                         if wait:
-                                            totalDelay = float(strings[x][n][5]) - subThis
-                                            totalDelay = 0.0 if totalDelay <= 0.0 else totalDelay
-                                            print('time delay: ', totalDelay)
-                                            time.sleep(totalDelay)
+                                            # totalDelay = float(strings[x][n][5]) - subThis
+                                            # totalDelay = 0.0 if totalDelay <= 0.0 else totalDelay
+                                            # print('time delay: ', totalDelay)
+                                            time.sleep(float(strings[x][n][5]))
 
 
                                 else:
